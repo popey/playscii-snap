@@ -1,0 +1,50 @@
+name: playscii
+base: core18
+adopt-info: playscii
+summary: PLAYSCII - an ASCII art and game creation tool
+description: |
+  This is my-snap's description. You have a paragraph or two to tell the
+  most important story about your snap. Keep it under 100 words though,
+  we live in tweetspace and your description wants to look good in the snap
+  store.
+
+grade: stable
+confinement: strict
+
+parts:
+  playscii:
+    plugin: python
+    source: https://bitbucket.org/JPLeBreton/playscii
+    source-type: hg
+    source-tag: "9.15"
+    override-pull: |
+      snapcraftctl pull
+      snapcraftctl set-version $(cat version)
+    stage-packages:
+      - python3-numpy
+      - python3-sdl2
+      - python3-appdirs
+      - python3-opengl
+      - python3-pil
+      - libsdl2-mixer-2.0-0
+      - libsdl2-image-2.0-0
+      - libglu1-mesa
+      - libpulse0
+      - libblas3
+    override-prime: |
+      snapcraftctl prime
+      # https://github.com/marcusva/py-sdl2/issues/143
+      sed -i 's|, "Mix_HasMusicDecoder",|,|' usr/lib/python3/dist-packages/sdl2/sdlmixer.py
+      sed -i 's|Mix_HasMusicDecoder =|#Mix_HasMusicDecoder =|' usr/lib/python3/dist-packages/sdl2/sdlmixer.py
+
+apps:
+  playscii:
+    command: python3 $SNAP/playscii.py
+    environment:
+      PYSDL2_DLL_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET
+      LD_LIBRARY_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pulseaudio:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/blas:$LD_LIBRARY_PATH
+    plugs:
+      - x11
+      - opengl
+      - desktop
+      - desktop-legacy
